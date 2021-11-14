@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
 }
 
-version '1.2.6'
+version '1.2.7'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -63,15 +63,11 @@ publishing {
     }
     repositories {
         maven {
-            if (project.version.endsWith('-SNAPSHOT')) {
-                url "https://repo.vshnv.tech/snapshots/"
-            } else {
-                url "https://repo.vshnv.tech/releases/"
-            }
+            url "https://dl.rocketplugins.space"
 
             credentials {
-                username = project.findProperty("reposiliteAlias") ?: ""
-                password = project.findProperty("reposiliteToken") ?: ""
+                username = project.findProperty("repoUsername") ?: ""
+                password = project.findProperty("repoPassword") ?: ""
             }
             authentication {
                 basic(BasicAuthentication)
