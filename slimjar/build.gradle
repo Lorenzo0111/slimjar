@@ -63,7 +63,7 @@ publishing {
     }
     repositories {
         maven {
-            url "https://dl.rocketplugins.space"
+            url "https://dl.lorenzo0111.me"
 
             credentials {
                 username = project.findProperty("repoUsername") ?: ""
