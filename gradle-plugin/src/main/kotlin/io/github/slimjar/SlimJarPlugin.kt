@@ -96,4 +96,4 @@ class SlimJarPlugin : Plugin<Project> {
 
 }
 
-internal fun slimJarLib(version: String) = "io.github.slimjar:slimjar:$version"
+internal fun slimJarLib(version: String) = "me.lorenzo0111:slimjar:$version"

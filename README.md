@@ -41,10 +41,10 @@ ApplicationBuilder.appending("MyApplicationName").build()
 ```groovy
 plugins {
   id 'com.github.johnrengelman.shadow' version '6.0.0'
-  id 'io.github.slimjar' version '1.3.0'
+  id 'me.lorenzo0111.slimjar' version '1.3.0'
 }
 dependencies {
-  implementation slimjar("1.2.6")
+  implementation slimjar("1.3.0")
   slim 'group.id:artifact.id:version'
 }
 

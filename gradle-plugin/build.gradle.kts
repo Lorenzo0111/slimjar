@@ -12,7 +12,7 @@ plugins {
     `maven-publish`
 }
 
-group = "io.github.slimjar"
+group = "me.lorenzo0111"
 version = "1.3.0"
 
 repositories {
@@ -141,7 +141,7 @@ afterEvaluate {
 gradlePlugin {
     plugins {
         create("slimjar") {
-            id = "io.github.slimjar"
+            id = "me.lorenzo0111.slimjar"
             displayName = "SlimJar"
             description = "JVM Runtime Dependency Management."
             implementationClass = "io.github.slimjar.SlimJarPlugin"

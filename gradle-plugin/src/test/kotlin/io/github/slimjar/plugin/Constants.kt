@@ -28,7 +28,7 @@ import com.github.jengelman.gradle.plugins.shadow.ShadowPlugin
 import io.github.slimjar.SlimJarPlugin
 import org.gradle.api.Project
 
-const val PLUGIN_ID = "io.github.slimjar"
+const val PLUGIN_ID = "me.lorenzo0111.slimjar"
 const val SLIM_CONFIG_NAME = "slim"
 const val SIM_API_CONFIG_NAME = "slimApi"
 
