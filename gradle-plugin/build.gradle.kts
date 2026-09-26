@@ -35,6 +35,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.assertj:assertj-core:3.23.1")
+    testImplementation("org.apache.logging.log4j:log4j-core:2.17.1")
 }
 
 val shadowJarTask = tasks.named("shadowJar", ShadowJar::class.java)
@@ -75,15 +76,18 @@ val ensureDependenciesAreInlined by tasks.registering {
 
     doLast {
         val nonInlinedDependencies = mutableListOf<String>()
+        val inlinedPackagePrefixes = listOf(
+            "io/github/slimjar/",
+            "kotlin/",
+            "shadow/"
+        )
         zipTree(tasks.shadowJar.flatMap { it.archiveFile }).visit {
             if (!isDirectory) {
                 val path = relativePath
                 if (
                     !path.startsWith("META-INF") &&
                     path.lastName.endsWith(".class") &&
-                    !path.pathString.startsWith(
-                        "io.github.slimjar".replace(".", "/")
-                    )
+                    inlinedPackagePrefixes.none { path.pathString.startsWith(it) }
                 ) {
                     nonInlinedDependencies.add(path.pathString)
                 }

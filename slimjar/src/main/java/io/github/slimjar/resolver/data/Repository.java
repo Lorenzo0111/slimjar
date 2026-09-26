@@ -30,6 +30,7 @@ import java.util.Objects;
 
 public final class Repository {
     public static final String CENTRAL_URL = "https://repo1.maven.org/maven2/";
+    public static final String DEFAULT_CENTRAL_MIRROR_URL = "https://repo.maven.apache.org/maven2/";
 
     private static Repository centralInstance;
     private final URL url;
