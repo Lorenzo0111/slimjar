@@ -4,7 +4,7 @@ plugins {
 }
 
 allprojects {
-    group 'me.lorenzo0111'
+    group = 'me.lorenzo0111'
 
     apply plugin: 'com.github.hierynomus.license-base'
 
@@ -13,10 +13,30 @@ allprojects {
     }
 
     license {
-        header rootProject.file('LICENSE')
+        header = rootProject.file('LICENSE')
         includes(['**/*.java', '**/*.kt'])
         mapping 'kt': 'DOUBLESLASH_STYLE',
                 'java': 'DOUBLESLASH_STYLE'
+    }
+
+    // Every published artifact must run on Java 8+, regardless of the JDK used to build
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+        tasks.withType(JavaCompile).configureEach {
+            options.release = 8
+            options.compilerArgs.add('-Xlint:-options')
+        }
+        // Allows running the tests on another JDK, e.g. -PtestJavaVersion=8
+        if (project.hasProperty('testJavaVersion')) {
+            tasks.withType(Test).configureEach {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(project.property('testJavaVersion').toString())
+                }
+            }
+        }
     }
 }
 

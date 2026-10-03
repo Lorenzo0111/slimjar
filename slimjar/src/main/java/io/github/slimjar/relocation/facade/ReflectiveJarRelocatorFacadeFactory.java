@@ -87,21 +87,21 @@ public final class ReflectiveJarRelocatorFacadeFactory implements JarRelocatorFa
         final Dependency asm = new Dependency(
                 Packages.fix("org#ow2#asm"),
                 "asm",
-                "9.1",
+                "9.10.1",
                 null,
                 Collections.emptyList()
         );
         final Dependency asmCommons = new Dependency(
                 Packages.fix("org#ow2#asm"),
                 "asm-commons",
-                "9.1",
+                "9.10.1",
                 null,
                 Collections.emptyList()
         );
         final Dependency jarRelocator = new Dependency(
                 Packages.fix("me#lucko"),
                 "jar-relocator",
-                "1.4",
+                "1.7",
                 null,
                 Arrays.asList(asm, asmCommons)
         );

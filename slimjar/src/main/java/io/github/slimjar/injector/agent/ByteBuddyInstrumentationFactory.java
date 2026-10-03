@@ -123,7 +123,7 @@ public final class ByteBuddyInstrumentationFactory implements InstrumentationFac
         final Dependency byteBuddy = new Dependency(
                 "net.bytebuddy",
                 "byte-buddy-agent",
-                "1.11.0",
+                "1.18.14",
                 null,
                 Collections.emptyList()
         );

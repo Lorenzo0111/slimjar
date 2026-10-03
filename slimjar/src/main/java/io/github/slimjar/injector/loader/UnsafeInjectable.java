@@ -24,9 +24,8 @@
 
 package io.github.slimjar.injector.loader;
 
-import sun.misc.Unsafe;
-
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayDeque;
@@ -47,25 +46,25 @@ public final class UnsafeInjectable implements Injectable {
         pathURLs.add(url);
     }
 
-    public static Injectable create(final URLClassLoader classLoader) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = Unsafe.class.getDeclaredField("theUnsafe");
+    @SuppressWarnings("unchecked")
+    public static Injectable create(final URLClassLoader classLoader) throws ReflectiveOperationException {
+        // sun.misc.Unsafe is accessed reflectively since it is not exposed when compiling with --release
+        final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+        final Field field = unsafeClass.getDeclaredField("theUnsafe");
         field.setAccessible(true);
-        final  Unsafe unsafe = (Unsafe) field.get(null);
-        final Object ucp = fetchField(unsafe, URLClassLoader.class, classLoader, "ucp");
-        final ArrayDeque<URL> unopenedURLs = (ArrayDeque<URL>) fetchField(unsafe, ucp, "unopenedUrls");
-        final ArrayList<URL> pathURLs = (ArrayList<URL>) fetchField(unsafe, ucp, "path");
+        final Object unsafe = field.get(null);
+        final Method objectFieldOffset = unsafeClass.getMethod("objectFieldOffset", Field.class);
+        final Method getObject = unsafeClass.getMethod("getObject", Object.class, long.class);
+
+        final Object ucp = fetchField(unsafe, objectFieldOffset, getObject, URLClassLoader.class, classLoader, "ucp");
+        final ArrayDeque<URL> unopenedURLs = (ArrayDeque<URL>) fetchField(unsafe, objectFieldOffset, getObject, ucp.getClass(), ucp, "unopenedUrls");
+        final ArrayList<URL> pathURLs = (ArrayList<URL>) fetchField(unsafe, objectFieldOffset, getObject, ucp.getClass(), ucp, "path");
         return new UnsafeInjectable(unopenedURLs, pathURLs);
     }
 
-
-
-    private static Object fetchField(final Unsafe unsafe, final Object object, final String name) throws NoSuchFieldException {
-        return fetchField(unsafe, object.getClass(), object, name);
-    }
-
-    private static Object fetchField(final Unsafe unsafe, final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
+    private static Object fetchField(final Object unsafe, final Method objectFieldOffset, final Method getObject, final Class<?> clazz, final Object object, final String name) throws ReflectiveOperationException {
         final Field field = clazz.getDeclaredField(name);
-        final long offset = unsafe.objectFieldOffset(field);
-        return unsafe.getObject(object, offset);
+        final long offset = (Long) objectFieldOffset.invoke(unsafe, field);
+        return getObject.invoke(unsafe, object, offset);
     }
 }

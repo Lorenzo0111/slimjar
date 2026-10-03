@@ -24,23 +24,27 @@
 
 package io.github.slimjar
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.github.slimjar.exceptions.ShadowNotFoundException
 import io.github.slimjar.func.applyReleaseRepo
 import io.github.slimjar.func.applySnapshotRepo
 import io.github.slimjar.func.createConfig
+import io.github.slimjar.relocation.ShadowInterop
 import io.github.slimjar.task.SlimJar
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.maven
 
 const val SLIM_CONFIGURATION_NAME = "slim"
 const val SLIM_API_CONFIGURATION_NAME = "slimApi"
 const val SLIM_JAR_TASK_NAME = "slimJar"
-private const val RESOURCES_TASK = "processResources"
-private const val SHADOW_ID = "com.github.johnrengelman.shadow"
+const val RELEASES_REPOSITORY = "https://dl.lorenzo0111.me/releases/"
+const val SNAPSHOTS_REPOSITORY = "https://dl.lorenzo0111.me/snapshots/"
+internal const val SHADOW_ID = "com.gradleup.shadow"
+internal const val LEGACY_SHADOW_ID = "com.github.johnrengelman.shadow"
 
 class SlimJarPlugin : Plugin<Project> {
 
@@ -48,8 +52,8 @@ class SlimJarPlugin : Plugin<Project> {
         // Applies Java if not present, since it's required for the compileOnly configuration
         plugins.apply(JavaPlugin::class.java)
 
-        if (!plugins.hasPlugin(SHADOW_ID)) {
-            throw ShadowNotFoundException("SlimJar depends on the Shadow plugin, please apply the plugin. For more information visit: https://imperceptiblethoughts.com/shadow/")
+        if (ShadowInterop.appliedPluginId(project) == null) {
+            throw ShadowNotFoundException("SlimJar depends on the Shadow plugin, please apply the plugin. For more information visit: https://gradleup.com/shadow/")
         }
 
         val slimConfig = createConfig(
@@ -69,29 +73,28 @@ class SlimJarPlugin : Plugin<Project> {
         // Auto adds the slimJar lib dependency
         afterEvaluate {
             if (applyReleaseRepo) {
-                repositories.maven("https://repo.vshnv.tech/")
+                repositories.maven(RELEASES_REPOSITORY)
             }
             if (applySnapshotRepo) {
-                repositories.maven("https://repo.vshnv.tech/snapshots/")
+                repositories.maven(SNAPSHOTS_REPOSITORY)
             }
         }
         project.dependencies.extra.set(
             "slimjar",
             asGroovyClosure("+") { version -> slimJarLib(version) }
         )
-        // Hooks into shadow to inject relocations
-        val shadowTask = tasks.withType(ShadowJar::class.java).firstOrNull() ?: return
-        shadowTask.doFirst {
-            slimJar.relocations().forEach { rule ->
-                shadowTask.relocate(rule.originalPackagePattern, rule.relocatedPackagePattern) {
-                    rule.inclusions.forEach { include(it) }
-                    rule.exclusions.forEach { exclude(it) }
-                }
-            }
+        // Hooks into shadow to inject relocations, once the build script had the chance to configure the slimJar task.
+        // Shadow is accessed reflectively since its API isn't binary compatible across versions (legacy, GradleUp 8.x and 9.x)
+        afterEvaluate {
+            val shadowTask = tasks.findByName(ShadowInterop.SHADOW_JAR_TASK_NAME) ?: return@afterEvaluate
+            slimJar.relocations().forEach { rule -> ShadowInterop.relocate(shadowTask, rule) }
         }
 
-        // Runs the task once resources are being processed to save the json file
-        tasks.findByName(RESOURCES_TASK)?.finalizedBy(slimJar)
+        // Bundles the generated files (slimjar.json, isolated jars...) with the main resources, so that any jar task includes them
+        extensions.getByType(SourceSetContainer::class.java)
+            .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+            .output
+            .dir(mapOf("builtBy" to slimJar), slimJar.outputDirectory)
     }
 
 }

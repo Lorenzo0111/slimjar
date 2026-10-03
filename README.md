@@ -1,17 +1,17 @@
 <h1 align="center">Slim Jar</h1>
 <h3 align="center">Runtime Dependency Management</h3>
   <div align="center">
-    <a href="https://github.com/SlimJar/slimjar/">
-        <img src="https://img.shields.io/github/license/SlimJar/slimjar">
+    <a href="https://github.com/Lorenzo0111/slimjar/">
+        <img src="https://img.shields.io/github/license/Lorenzo0111/slimjar">
     </a>
-    <a href="https://github.com/SlimJar/slimjar/actions/workflows/gradle.yml">
-        <img src="https://github.com/SlimJar/slimjar/actions/workflows/gradle.yml/badge.svg">
+    <a href="https://github.com/Lorenzo0111/slimjar/actions/workflows/gradle.yml">
+        <img src="https://github.com/Lorenzo0111/slimjar/actions/workflows/gradle.yml/badge.svg">
     </a>
     <a href="https://plugins.gradle.org/plugin/io.github.slimjar">
         <img src="https://img.shields.io/maven-metadata/v.svg?label=gradle-plugin&metadataUrl=https%3A%2F%2Fplugins.gradle.org%2Fm2%2Fio%2Fgithub%2Fslimjar%2Fio.github.slimjar.gradle.plugin%2Fmaven-metadata.xml">
     </a>
-    <a href="https://repo.vshnv.tech/releases/io/github/slimjar/slimjar">
-        <img src="https://img.shields.io/maven-metadata/v.svg?label=maven&metadataUrl=https%3A%2F%2Frepo.vshnv.tech%2Fio%2Fgithub%2Fslimjar%2Fslimjar%2Fmaven-metadata.xml">
+    <a href="https://dl.lorenzo0111.me/#/releases/me/lorenzo0111/slimjar">
+        <img src="https://img.shields.io/maven-metadata/v.svg?label=maven&metadataUrl=https%3A%2F%2Fdl.lorenzo0111.me%2Freleases%2Fme%2Florenzo0111%2Fslimjar%2Fmaven-metadata.xml">
     </a>
   </div>
 
@@ -40,7 +40,7 @@ ApplicationBuilder.appending("MyApplicationName").build()
 *build.gradle* GROOVY DSL
 ```groovy
 plugins {
-  id 'com.github.johnrengelman.shadow' version '6.0.0'
+  id 'com.gradleup.shadow' version '9.6.1'
   id 'me.lorenzo0111.slimjar' version '1.3.0'
 }
 dependencies {
@@ -53,6 +53,8 @@ slimJar {
 }
 ```
 
+Both the GradleUp Shadow plugin (`com.gradleup.shadow`, 8.x and 9.x) and the legacy one (`com.github.johnrengelman.shadow`) are supported, it must be applied before SlimJar. The generated jar runs on Java 8 and newer.
+
 (For Kotlin DSL, to use the `slimjar` extension in dependencies block, you will need the following import - `import io.github.slimjar.func.slimjar`)
 
 <br>
@@ -61,7 +63,7 @@ slimJar {
 
 
 ```sh
-git clone https://github.com/SlimJar/slimjar.git
+git clone https://github.com/Lorenzo0111/slimjar.git
 gradlew test
 ```
 <br>
@@ -69,7 +71,7 @@ gradlew test
 <h2 align="center">Releases</h2>
 
 * https://plugins.gradle.org/plugin/io.github.slimjar
-* https://repo.vshnv.tech/releases/io/github/slimjar/slimjar/1.2.1
+* https://dl.lorenzo0111.me/#/releases/me/lorenzo0111/slimjar
 
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
@@ -79,7 +81,7 @@ Distributed under the MIT license. See ``LICENSE`` for more information.
 
 
 
-1. Fork it (<https://github.com/SlimJar/slimjar/fork>)
+1. Fork it (<https://github.com/Lorenzo0111/slimjar/fork>)
 2. Create your feature branch (`git checkout -b feature/abcd`)
 3. Commit your changes (`git commit -am 'Added some feature abcd'`)
 4. Push to the branch (`git push origin feature/fooBar`)

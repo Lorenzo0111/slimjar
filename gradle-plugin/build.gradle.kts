@@ -1,14 +1,12 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-gradle-plugin`
     `kotlin-dsl`
-    groovy
-    kotlin("jvm") version "1.7.0"
-    id("com.gradle.plugin-publish") version "0.21.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.gradle.plugin-publish") version "1.3.1"
+    id("com.gradleup.shadow") version "8.3.11"
     `maven-publish`
 }
 
@@ -16,7 +14,8 @@ group = "me.lorenzo0111"
 version = "1.3.0"
 
 repositories {
-    maven("https://plugins.gradle.org/m2/")
+    mavenCentral()
+    gradlePluginPortal()
 }
 
 val shadowImplementation: Configuration by configurations.creating
@@ -24,40 +23,24 @@ configurations["compileOnly"].extendsFrom(shadowImplementation)
 configurations["testImplementation"].extendsFrom(shadowImplementation)
 
 dependencies {
-    shadowImplementation(kotlin("stdlib", "1.7.0"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
     shadowImplementation(project(":slimjar"))
     shadowImplementation("com.google.code.gson:gson:2.9.0")
 
-    compileOnly("com.github.jengelman.gradle.plugins:shadow:6.1.0")
-
-    testImplementation("com.github.jengelman.gradle.plugins:shadow:6.1.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.assertj:assertj-core:3.23.1")
-    testImplementation("org.apache.logging.log4j:log4j-core:2.17.1")
+    // Shadow is only needed for tests: the plugin talks to whichever Shadow version (legacy or GradleUp) the build applies
+    testImplementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.11")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.3")
+    testImplementation("org.assertj:assertj-core:3.26.3")
 }
 
 val shadowJarTask = tasks.named("shadowJar", ShadowJar::class.java)
-val relocateShadowJar = tasks.register("relocateShadowJar", ConfigureShadowRelocation::class.java) {
-    target = shadowJarTask.get()
-}
 
 shadowJarTask.configure {
-    dependsOn(relocateShadowJar)
     archiveClassifier.set("")
     configurations = listOf(shadowImplementation)
-}
-
-// Required for plugin substitution to work in samples project
-artifacts {
-    add("runtimeOnly", shadowJarTask)
-}
-
-tasks.whenTaskAdded {
-    if (name == "publishPluginJar" || name == "generateMetadataFileForPluginMavenPublication") {
-        dependsOn(tasks.named("shadowJar"))
-    }
+    // Metadata of shaded dependencies, gson's module descriptor would describe the wrong (relocated) packages
+    exclude("META-INF/versions/*/module-info.class", "META-INF/maven/**")
 }
 
 // Disabling default jar task as it is overridden by shadowJar
@@ -77,9 +60,7 @@ val ensureDependenciesAreInlined by tasks.registering {
     doLast {
         val nonInlinedDependencies = mutableListOf<String>()
         val inlinedPackagePrefixes = listOf(
-            "io/github/slimjar/",
-            "kotlin/",
-            "shadow/"
+            "io/github/slimjar/"
         )
         zipTree(tasks.shadowJar.flatMap { it.archiveFile }).visit {
             if (!isDirectory) {
@@ -104,10 +85,10 @@ tasks.named("check") {
 }
 
 tasks {
-    withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-            freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+    withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
 
@@ -117,7 +98,6 @@ tasks {
             "me.lucko.jarrelocator" to ".jarrelocator",
             "com.google.gson" to ".gson"
         ).forEach { relocate(it.key, "io.github.slimjar${it.value}") }
-        relocate("kotlin", "kotlin")
     }
 
     test {
@@ -125,37 +105,16 @@ tasks {
     }
 }
 
-// Work around publishing shadow jars
-afterEvaluate {
-    publishing {
-        publications {
-            withType<MavenPublication> {
-                if (name == "pluginMaven") {
-                    setArtifacts(listOf(shadowJarTask.get()))
-                }
-            }
-        }
-    }
-}
-
 gradlePlugin {
+    website.set("https://github.com/Lorenzo0111/slimjar")
+    vcsUrl.set("https://github.com/Lorenzo0111/slimjar")
     plugins {
         create("slimjar") {
             id = "me.lorenzo0111.slimjar"
             displayName = "SlimJar"
             description = "JVM Runtime Dependency Management."
+            tags.set(listOf("runtime dependency", "relocation"))
             implementationClass = "io.github.slimjar.SlimJarPlugin"
         }
     }
-}
-
-pluginBundle {
-    website = "https://github.com/SlimJar/slimjar"
-    vcsUrl = "https://github.com/SlimJar/slimjar"
-    tags = listOf("runtime dependency", "relocation")
-    description = "Very easy to setup and downloads any public dependency at runtime!"
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    languageVersion = "1.4"
 }

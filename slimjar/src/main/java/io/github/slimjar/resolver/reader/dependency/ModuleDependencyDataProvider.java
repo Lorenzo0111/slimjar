@@ -46,7 +46,8 @@ public final class ModuleDependencyDataProvider implements DependencyDataProvide
 
     @Override
     public DependencyData get() throws IOException, ReflectiveOperationException {
-        final URL depFileURL = new URL("jar:file:" +moduleUrl.getFile() +"!/slimjar.json");
+        // Points to the jar root, pointing to the entry would make the connection throw when slimjar.json is missing
+        final URL depFileURL = new URL("jar:file:" + moduleUrl.getFile() + "!/");
 
         final URLConnection connection = depFileURL.openConnection();
         if (!(connection instanceof JarURLConnection)) {

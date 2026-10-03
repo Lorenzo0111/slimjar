@@ -38,7 +38,7 @@ const val SHADOW_BUILDSCRIPT = """
             gradlePluginPortal()
         }
         dependencies {
-            classpath 'gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0'
+            classpath 'com.gradleup.shadow:shadow-gradle-plugin:8.3.11'
         }
     }
 """
@@ -49,7 +49,7 @@ const val APPLY_SLIMJAR = """
     }
 """
 
-const val APPLY_SHADOW = "apply plugin: 'com.github.johnrengelman.shadow'"
+const val APPLY_SHADOW = "apply plugin: 'com.gradleup.shadow'"
 
 fun Project.applyPlugins() {
     project.pluginManager.apply(ShadowPlugin::class.java)

@@ -25,79 +25,68 @@
 package io.github.slimjar.resolver.pinger;
 
 import junit.framework.TestCase;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({URL.class, HttpURLPinger.class})
 public class URLPingerTest extends TestCase {
 
     public void testHttpURLPingerHttp() throws IOException {
-        final URL mockUrl = PowerMockito.mock(URL.class);
-        final HttpURLConnection httpURLConnection = PowerMockito.mock(HttpURLConnection.class);
-        PowerMockito.when(mockUrl.openConnection()).thenReturn(httpURLConnection);
-        PowerMockito.when(mockUrl.getProtocol()).thenReturn("HTTP");
-        PowerMockito.doNothing().when(httpURLConnection).addRequestProperty("","");
-        PowerMockito.doNothing().when(httpURLConnection).connect();
-        PowerMockito.doReturn(HttpURLConnection.HTTP_OK).when(httpURLConnection).getResponseCode();
+        final HttpURLConnection httpURLConnection = Mockito.mock(HttpURLConnection.class);
+        Mockito.doReturn(HttpURLConnection.HTTP_OK).when(httpURLConnection).getResponseCode();
         final URLPinger urlPinger = new HttpURLPinger();
-        boolean result = urlPinger.ping(mockUrl);
+        boolean result = urlPinger.ping(stubUrl("http", httpURLConnection));
         assertTrue("Valid http URL", result);
     }
 
     public void testHttpURLPingerHttps() throws IOException {
-        final URL mockUrl = PowerMockito.mock(URL.class);
-        final HttpsURLConnection httpsURLConnection = PowerMockito.mock(HttpsURLConnection.class);
-        PowerMockito.when(mockUrl.openConnection()).thenReturn(httpsURLConnection);
-        PowerMockito.when(mockUrl.getProtocol()).thenReturn("HTTPS");
-        PowerMockito.doNothing().when(httpsURLConnection).addRequestProperty("","");
-        PowerMockito.doNothing().when(httpsURLConnection).connect();
-        PowerMockito.doReturn(HttpURLConnection.HTTP_OK).when(httpsURLConnection).getResponseCode();
+        final HttpsURLConnection httpsURLConnection = Mockito.mock(HttpsURLConnection.class);
+        Mockito.doReturn(HttpURLConnection.HTTP_OK).when(httpsURLConnection).getResponseCode();
         final URLPinger urlPinger = new HttpURLPinger();
-        boolean result = urlPinger.ping(mockUrl);
+        boolean result = urlPinger.ping(stubUrl("https", httpsURLConnection));
         assertTrue("Valid https URL", result);
     }
 
     public void testHttpURLPingerFailIfNotOk() throws IOException {
-        final URL mockUrl = PowerMockito.mock(URL.class);
-        final HttpsURLConnection httpsURLConnection = PowerMockito.mock(HttpsURLConnection.class);
-        PowerMockito.when(mockUrl.openConnection()).thenReturn(httpsURLConnection);
-        PowerMockito.when(mockUrl.getProtocol()).thenReturn("HTTPS");
-        PowerMockito.doNothing().when(httpsURLConnection).addRequestProperty("","");
-        PowerMockito.doNothing().when(httpsURLConnection).connect();
-        PowerMockito.doReturn(HttpURLConnection.HTTP_BAD_REQUEST).when(httpsURLConnection).getResponseCode();
+        final HttpsURLConnection httpsURLConnection = Mockito.mock(HttpsURLConnection.class);
+        Mockito.doReturn(HttpURLConnection.HTTP_BAD_REQUEST).when(httpsURLConnection).getResponseCode();
         final URLPinger urlPinger = new HttpURLPinger();
-        boolean result = urlPinger.ping(mockUrl);
+        boolean result = urlPinger.ping(stubUrl("https", httpsURLConnection));
         assertFalse("Non-OK should fail", result);
     }
 
     public void testHttpURLPingerExceptionOnPing() throws IOException {
-        final URL mockUrl = PowerMockito.mock(URL.class);
-        final HttpsURLConnection httpsURLConnection = PowerMockito.mock(HttpsURLConnection.class);
-        PowerMockito.when(mockUrl.openConnection()).thenReturn(httpsURLConnection);
-        PowerMockito.when(mockUrl.getProtocol()).thenReturn("HTTPS");
-        PowerMockito.doNothing().when(httpsURLConnection).addRequestProperty("","");
-        PowerMockito.doThrow(new IOException()).when(httpsURLConnection).connect();
-        PowerMockito.doReturn(HttpURLConnection.HTTP_BAD_REQUEST).when(httpsURLConnection).getResponseCode();
+        final HttpsURLConnection httpsURLConnection = Mockito.mock(HttpsURLConnection.class);
+        Mockito.doThrow(new IOException()).when(httpsURLConnection).connect();
+        Mockito.doReturn(HttpURLConnection.HTTP_OK).when(httpsURLConnection).getResponseCode();
         final URLPinger urlPinger = new HttpURLPinger();
-        boolean result = urlPinger.ping(mockUrl);
+        boolean result = urlPinger.ping(stubUrl("https", httpsURLConnection));
         assertFalse("Exception should fail", result);
     }
 
-    public void testHttpURLPingerUnsupportedProtocol() {
-        final URL mockUrl = PowerMockito.mock(URL.class);
+    public void testHttpURLPingerUnsupportedProtocol() throws IOException {
+        final URLConnection connection = Mockito.mock(URLConnection.class);
         final URLPinger urlPinger = new HttpURLPinger();
-
-        PowerMockito.doReturn("NON-EXISTENT-PROTOCOL").when(mockUrl).getProtocol();
-        boolean result = urlPinger.ping(mockUrl);
+        boolean result = urlPinger.ping(stubUrl("non-existent-protocol", connection));
         assertFalse("Non-OK should fail", result);
+        Mockito.verifyNoInteractions(connection);
     }
 
+    /**
+     * Creates a real URL (URL is final and can't be mocked) whose connection is the given mock
+     */
+    private static URL stubUrl(final String protocol, final URLConnection connection) throws MalformedURLException {
+        return new URL(protocol, "repo.example", -1, "/dep.jar", new URLStreamHandler() {
+            @Override
+            protected URLConnection openConnection(final URL url) {
+                return connection;
+            }
+        });
+    }
 }

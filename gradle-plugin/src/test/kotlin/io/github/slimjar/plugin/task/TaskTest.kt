@@ -24,8 +24,13 @@
 
 package io.github.slimjar.plugin.task
 
+import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.github.slimjar.plugin.applyPlugins
+import io.github.slimjar.task.SlimJar
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -40,6 +45,20 @@ class TaskTest {
         assertThatCode {
             project.tasks.getByName("slimJar")
         }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `Test relocations are forwarded to shadowJar`() {
+        val project = ProjectBuilder.builder().build().also { it.applyPlugins() }
+        project.tasks.withType(SlimJar::class.java).getByName("slimJar")
+            .relocate("a.b.c", "m.n.o") { exclude("a.b.c.Excluded") }
+        (project as ProjectInternal).evaluate()
+
+        val relocators = project.tasks.withType(ShadowJar::class.java).getByName("shadowJar")
+            .relocators.filterIsInstance<SimpleRelocator>()
+        assertThat(relocators).hasSize(1)
+        assertThat(relocators.single().canRelocateClass("a.b.c.Kept")).isTrue
+        assertThat(relocators.single().canRelocateClass("a.b.c.Excluded")).isFalse
     }
 
 }

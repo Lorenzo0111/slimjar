@@ -30,7 +30,6 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.internal.Cast.uncheckedCast
 
 /**
  * Adds `slim` configuration for Kotlin dsl with options
@@ -71,7 +70,7 @@ private fun DependencyHandler.withOptions(
     dependencyNotation: String,
     dependencyConfiguration: Action<ExternalModuleDependency>
 ): ExternalModuleDependency? = run {
-    uncheckedCast<ExternalModuleDependency>(create(dependencyNotation)).also { dependency ->
+    (create(dependencyNotation) as? ExternalModuleDependency).also { dependency ->
         if (dependency == null) return@run null
         dependencyConfiguration.execute(dependency)
         add(configuration, dependency)
