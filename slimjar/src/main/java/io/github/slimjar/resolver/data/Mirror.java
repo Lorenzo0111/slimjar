@@ -58,12 +58,13 @@ public final class Mirror {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Mirror mirror1 = (Mirror) o;
-        return Objects.equals(mirroring, mirror1.mirroring) && Objects.equals(original, mirror1.original);
+        return mirroring.toExternalForm().equals(mirror1.mirroring.toExternalForm())
+                && original.toExternalForm().equals(mirror1.original.toExternalForm());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mirroring, original);
+        return Objects.hash(mirroring.toExternalForm(), original.toExternalForm());
     }
 
 }

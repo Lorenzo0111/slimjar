@@ -48,12 +48,12 @@ public final class Repository {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Repository that = (Repository) o;
-        return url.equals(that.url);
+        return url.toExternalForm().equals(that.url.toExternalForm());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url);
+        return Objects.hash(url.toExternalForm());
     }
 
     @Override

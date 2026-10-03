@@ -35,11 +35,12 @@ public final class SimpleMirrorSelector implements MirrorSelector {
 
     @Override
     public Collection<Repository> select(final Collection<Repository> mainRepositories, final Collection<Mirror> mirrors) {
-        final Collection<URL> originals = mirrors.stream()
+        final Collection<String> originals = mirrors.stream()
                 .map(Mirror::getOriginal)
+                .map(URL::toExternalForm)
                 .collect(Collectors.toSet());
         final Collection<Repository> resolved = mainRepositories.stream()
-                .filter(repo -> !originals.contains(repo.getUrl()))
+                .filter(repo -> !originals.contains(repo.getUrl().toExternalForm()))
                 .collect(Collectors.toSet());
         final Collection<Repository> mirrored = mirrors.stream()
                 .map(Mirror::getMirroring)
