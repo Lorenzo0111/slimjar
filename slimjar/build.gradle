@@ -61,8 +61,8 @@ publishing {
             url = "https://dl.lorenzo0111.me/releases"
 
             credentials {
-                username = project.findProperty("repoUsername") ?: ""
-                password = project.findProperty("repoPassword") ?: ""
+                username = project.findProperty("lorenzo0111RepositoryUsername") ?: ""
+                password = project.findProperty("lorenzo0111RepositoryPassword") ?: ""
             }
             authentication {
                 basic(BasicAuthentication)

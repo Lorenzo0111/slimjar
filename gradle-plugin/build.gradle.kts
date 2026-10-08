@@ -118,3 +118,19 @@ gradlePlugin {
         }
     }
 }
+
+publishing {
+    repositories {
+        maven {
+            url = uri("https://dl.lorenzo0111.me/releases")
+
+            credentials {
+                username = project.findProperty("lorenzo0111RepositoryUsername")?.toString() ?: ""
+                password = project.findProperty("lorenzo0111RepositoryPassword")?.toString() ?: ""
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+}
